@@ -12,7 +12,7 @@ object Main extends App {
 
   println("Part 1:")
   val inputStream1 = new ByteArrayInputStream("1".getBytes)
-  val intcode_interpreter = new IntcodeInterpreter(input.clone)
+  val intcode_interpreter = new IntcodeInterpreter(input.clone.map(BigInt(_)))
   intcode_interpreter.runProgram(inputStream1)
   println("Part 2:")
   val inputStream2 = new ByteArrayInputStream("5".getBytes)

@@ -11,10 +11,10 @@ import scala.io.Source
 
 class Amplifier(id:String, val input_stream: PipedInputStream, val output_stream: PipedOutputStream, var phase_setting: Int, code: Array[Int]) {
 
-  val intcode_interpreter = new IntcodeInterpreter(code)
+  val intcode_interpreter = new IntcodeInterpreter(code.map(BigInt(_)))
 
   def launch(): Int = {
-    intcode_interpreter.runProgram(id, input_stream, output_stream)
+    intcode_interpreter.runProgram(id, input_stream, output_stream).toInt
   }
 }
 
@@ -28,7 +28,7 @@ object Main extends App {
 
   def getThrusterSignal(phase_settings: (Int, Int, Int, Int, Int), code: Array[Int]): Int = {
 
-    val intcode_interpreter = new IntcodeInterpreter(code)
+    val intcode_interpreter = new IntcodeInterpreter(code.map(BigInt(_)))
 
     val a_input = new ByteArrayInputStream(new StringBuilder().append(phase_settings._1).append('\n').append(0).toString.getBytes)
     val a_output = intcode_interpreter.runProgram(a_input)
@@ -40,7 +40,7 @@ object Main extends App {
     val d_output = intcode_interpreter.runProgram(d_input)
 
     val e_input = new ByteArrayInputStream(new StringBuilder().append(phase_settings._5).append('\n').append(d_output).toString.getBytes)
-    intcode_interpreter.runProgram(e_input)
+    intcode_interpreter.runProgram(e_input).toInt
   }
 
   def getHighestThrusterOutput(phase_start: Int, phase_end: Int, execute: ((Int, Int, Int, Int, Int), Array[Int]) => Int, code: Array[Int]): Int = {
