@@ -1,6 +1,7 @@
 package day5
 
-import day5.SumHandler.modeParser
+import java.io.{ByteArrayInputStream, InputStream, OutputStream}
+import java.util.Scanner
 
 import scala.io.Source
 
@@ -78,18 +79,22 @@ object Main extends App {
     (op_code, modes)
   }
 
-  def runProgram(inputCode: Int, code: Array[Int]): Unit = {
+  def runProgram(inputStream: InputStream, code:Array[Int]): Int = runProgram("AoC Program", inputStream, System.out, code)
+
+  def runProgram(id: String, input: InputStream, output: OutputStream, code: Array[Int]): Int = {
+
+    val scanner = new Scanner(input)
 
     var operation_result = InstructionResult() // Temporary variable
     var current_op: (Int, Array[Int]) = (-1, Array())
     var instruction_pointer = 0
+
+    var return_val: Int = -1
+
     while(current_op._1 != 99) {
       current_op = parseOPCode(code(instruction_pointer))
 
       val op_code = current_op._1
-      if(op_code == 25) {
-        print("asd")
-      }
       val param_modes:Array[Int] = current_op._2
       op_code match {
         case 1 => {
@@ -109,10 +114,13 @@ object Main extends App {
             ), code)
         }
         case 3 => {
+          while(!scanner.hasNextInt) {
+            //wait for input
+          }
           operation_result = ReadHandler.exec(
             Seq(
               (code(instruction_pointer + 1), 1),
-              (inputCode, 1)
+              (scanner.nextInt(), 1)
             ), code)
         }
         case 4 => {
@@ -151,24 +159,30 @@ object Main extends App {
               (code(instruction_pointer + 3), 1 )
             ), code)
         }
-        case 99 => return
+        case 99 => return return_val
       }
 
       if(operation_result.index == -1) {
         println(operation_result.value)
+        return_val = operation_result.value
+        output.write(s"$return_val\n".getBytes)
       } else if(operation_result.index != -2) {
         code(operation_result.index) = operation_result.value
       }
       instruction_pointer += operation_result.ip_delta
     }
+
+    output.write(s"$return_val\n".getBytes)
+//    output.close()
+    return_val
   }
-
-
 
   val input: Array[Int] = Source.fromFile("src/day5/input").mkString("").split(",").map(_.toInt)
   println("Part 1:")
-  runProgram(1, input.clone)
+  val inputStream1 = new ByteArrayInputStream("1".getBytes)
+  runProgram(inputStream1, input.clone)
   println("Part 2:")
-  runProgram(5, input.clone)
+  val inputStream2 = new ByteArrayInputStream("5".getBytes)
+  runProgram(inputStream2, input.clone)
 
 }
