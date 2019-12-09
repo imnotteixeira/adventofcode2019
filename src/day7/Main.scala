@@ -2,7 +2,7 @@ package day7
 
 import java.io.{ByteArrayInputStream, PipedInputStream, PipedOutputStream}
 
-import day5.Main.runProgram
+import intcode.interpreter.IntcodeInterpreter
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -11,8 +11,10 @@ import scala.io.Source
 
 class Amplifier(id:String, val input_stream: PipedInputStream, val output_stream: PipedOutputStream, var phase_setting: Int, code: Array[Int]) {
 
+  val intcode_interpreter = new IntcodeInterpreter(code)
+
   def launch(): Int = {
-    runProgram(id, input_stream, output_stream, code)
+    intcode_interpreter.runProgram(id, input_stream, output_stream)
   }
 }
 
@@ -26,17 +28,19 @@ object Main extends App {
 
   def getThrusterSignal(phase_settings: (Int, Int, Int, Int, Int), code: Array[Int]): Int = {
 
+    val intcode_interpreter = new IntcodeInterpreter(code)
+
     val a_input = new ByteArrayInputStream(new StringBuilder().append(phase_settings._1).append('\n').append(0).toString.getBytes)
-    val a_output = runProgram(a_input, code.clone)
+    val a_output = intcode_interpreter.runProgram(a_input)
     val b_input = new ByteArrayInputStream(new StringBuilder().append(phase_settings._2).append('\n').append(a_output).toString.getBytes)
-    val b_output = runProgram(b_input, code.clone)
+    val b_output = intcode_interpreter.runProgram(b_input)
     val c_input = new ByteArrayInputStream(new StringBuilder().append(phase_settings._3).append('\n').append(b_output).toString.getBytes)
-    val c_output = runProgram(c_input, code.clone)
+    val c_output = intcode_interpreter.runProgram(c_input)
     val d_input = new ByteArrayInputStream(new StringBuilder().append(phase_settings._4).append('\n').append(c_output).toString.getBytes)
-    val d_output = runProgram(d_input, code.clone)
+    val d_output = intcode_interpreter.runProgram(d_input)
 
     val e_input = new ByteArrayInputStream(new StringBuilder().append(phase_settings._5).append('\n').append(d_output).toString.getBytes)
-    runProgram(e_input, code.clone)
+    intcode_interpreter.runProgram(e_input)
   }
 
   def getHighestThrusterOutput(phase_start: Int, phase_end: Int, execute: ((Int, Int, Int, Int, Int), Array[Int]) => Int, code: Array[Int]): Int = {
