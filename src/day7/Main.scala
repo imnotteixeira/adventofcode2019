@@ -14,7 +14,7 @@ class Amplifier(id:String, val input_stream: PipedInputStream, val output_stream
   val intcode_interpreter = new IntcodeInterpreter(code.map(BigInt(_)))
 
   def launch(): Int = {
-    intcode_interpreter.runProgram(id, input_stream, output_stream).toInt
+    intcode_interpreter.runProgram(id, input_stream, output_stream, notify_when_done = false).toInt
   }
 }
 

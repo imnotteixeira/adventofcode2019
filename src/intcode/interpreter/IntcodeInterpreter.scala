@@ -3,6 +3,10 @@ package intcode.interpreter
 import java.io.{InputStream, OutputStream}
 import java.util.Scanner
 
+object IntcodeReader {
+  def parseString(input: String): Array[BigInt] = input.split(",").map(BigInt(_))
+}
+
 case class InstructionResult(index: Int, value: BigInt, ip_delta: Int)
 
 object InstructionResult {
@@ -37,7 +41,6 @@ object MultHandler extends OPHandler {
 
 object ReadHandler extends OPHandler {
   override def exec(params: Seq[(BigInt, Int)], code: Seq[BigInt], relative_base: BigInt): InstructionResult = {
-//    val index = if(params(0)._2 == 2) params(0)._1 + relative_base else params(0)._1
     InstructionResult(modeParser(params(0), code, relative_base).toInt, modeParser(params(1), code, relative_base), 2)
   }
 }
@@ -95,9 +98,9 @@ class IntcodeInterpreter(var code: Array[BigInt]) {
     (op_code, modes)
   }
 
-  def runProgram(inputStream: InputStream): BigInt = runProgram("AoC Program", inputStream, System.out)
+  def runProgram(inputStream: InputStream): BigInt = runProgram("AoC Program", inputStream, System.out, false)
 
-  def runProgram(id: String, input: InputStream, output: OutputStream): BigInt = {
+  def runProgram(id: String, input: InputStream, output: OutputStream, notify_when_done: Boolean): BigInt = {
 
     var relative_base: BigInt = 0
 
@@ -214,13 +217,16 @@ class IntcodeInterpreter(var code: Array[BigInt]) {
           )
           relative_base += operation_result.value
         }
-        case 99 => return return_val
+        case 99 => {
+          if(notify_when_done) output.write("done".getBytes())
+          return return_val
+        }
       }
 
       if(operation_result.index == -1) {
-//        println(operation_result.value)
         return_val = operation_result.value
         output.write(s"$return_val\n".getBytes)
+        output.flush()
       } else if(operation_result.index != -2) {
         code(operation_result.index) = operation_result.value
       }
@@ -228,6 +234,7 @@ class IntcodeInterpreter(var code: Array[BigInt]) {
     }
 
     output.write(s"$return_val\n".getBytes)
+    output.flush()
     //    output.close()
     return_val
   }
